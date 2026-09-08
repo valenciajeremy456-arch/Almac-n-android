@@ -27,7 +27,7 @@ jobs:
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
     - name: Compilar APK Debug
-      run: gradle assembleDebug --stacktrace
+      run: gradle :app:assembleDebug --stacktrace
 
     - name: Subir APK generado
       uses: actions/upload-artifact@v4
