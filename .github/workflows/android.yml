@@ -30,6 +30,8 @@ jobs:
 
     - name: Compilar APK Debug
       run: gradle :app:assembleDebug --stacktrace
+      - name: Limpiar caché de Gradle
+  run: gradle clean
 
     - name: Subir APK generado
       uses: actions/upload-artifact@v4
