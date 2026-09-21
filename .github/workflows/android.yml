@@ -26,13 +26,21 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Configurar Gradle 8.4
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: "8.4"
+
+      - name: Configurar Android SDK
+        run: |
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
+
+      - name: Verificar Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          sdkmanager --version
 
       - name: Aceptar licencias de Android SDK
         run: |
@@ -40,12 +48,18 @@ jobs:
 
       - name: Instalar componentes del SDK Android
         run: |
-          sdkmanager "platform-tools" \
+          sdkmanager --install \
+            "platform-tools" \
             "platforms;android-34" \
             "build-tools;34.0.0"
 
       - name: Compilar APK Release
         run: gradle :app:assembleRelease --stacktrace
+
+      - name: Verificar APK generado
+        run: |
+          ls -la app/build/outputs/apk/release/
+          test -f app/build/outputs/apk/release/app-release.apk
 
       - name: Subir APK generado
         uses: actions/upload-artifact@v4
@@ -57,7 +71,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, "refs/tags/v")
 
     steps:
       - name: Descargar APK
@@ -65,6 +79,11 @@ jobs:
         with:
           name: AlmacenApp-Android
           path: AlmacenApp-Android
+
+      - name: Verificar APK descargado
+        run: |
+          ls -la AlmacenApp-Android/
+          test -f AlmacenApp-Android/app-release.apk
 
       - name: Crear Release en GitHub
         uses: softprops/action-gh-release@v2
