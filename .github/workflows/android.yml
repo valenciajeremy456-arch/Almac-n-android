@@ -2,44 +2,55 @@ name: Compilar APK Android
 
 on:
   push:
-    branches: [ "main", "master" ]
-    tags: [ "v*" ]
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Descargar código del repositorio
-      uses: actions/checkout@v4
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
 
-    - name: Configurar Java 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
 
-    - name: Configurar Gradle (Versión 8.4)
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: '8.4'
+      - name: Configurar Gradle 8.4
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.4"
 
-    - name: Aceptar licencias de Android SDK
-      run: |
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+      - name: Aceptar licencias de Android SDK
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
 
-    - name: Compilar APK Release
-      run: gradle :app:assembleRelease --stacktrace
+      - name: Instalar componentes del SDK Android
+        run: |
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0"
 
-    - name: Limpiar caché de Gradle
-      run: gradle clean
+      - name: Compilar APK Release
+        run: gradle :app:assembleRelease --stacktrace
 
-    - name: Subir APK generado
-      uses: actions/upload-artifact@v4
-      with:
-        name: AlmacenApp-Android
-        path: app/build/outputs/apk/release/app-release.apk
+      - name: Subir APK generado
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlmacenApp-Android
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
 
   release:
     needs: build
@@ -47,19 +58,17 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-    - name: Descargar código
-      uses: actions/checkout@v4
+      - name: Descargar APK
+        uses: actions/download-artifact@v4
+        with:
+          name: AlmacenApp-Android
+          path: AlmacenApp-Android
 
-    - name: Descargar APK
-      uses: actions/download-artifact@v4
-      with:
-        name: AlmacenApp-Android
-
-    - name: Crear Release en GitHub
-      uses: softprops/action-gh-release@v1
-      with:
-        files: app-release.apk
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Crear Release en GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          files: AlmacenApp-Android/app-release.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
