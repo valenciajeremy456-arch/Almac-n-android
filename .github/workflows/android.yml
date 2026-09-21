@@ -26,6 +26,9 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Configurar Gradle 8.4
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -37,8 +40,7 @@ jobs:
 
       - name: Instalar componentes del SDK Android
         run: |
-          sdkmanager --install \
-            "platform-tools" \
+          sdkmanager "platform-tools" \
             "platforms;android-34" \
             "build-tools;34.0.0"
 
