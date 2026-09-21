@@ -27,9 +27,10 @@ jobs:
           distribution: "temurin"
 
       - name: Configurar Gradle 8.4
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.4"
+          cache-disabled: true
 
       - name: Configurar Android SDK
         run: |
