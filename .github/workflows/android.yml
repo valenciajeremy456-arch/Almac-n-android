@@ -35,19 +35,5 @@ jobs:
 
       - name: Verify generated APK
         run: |
-          echo "APK output folder:"
           ls -l app/build/outputs/apk/release
-
-          if [ ! -f app/build/outputs/apk/release/app-release.apk ]; then
-            echo "ERROR: app-release.apk not found"
-            exit 1
-          fi
-
-          echo "APK OK: app-release.apk"
-          ls -l app/build/outputs/apk/release/app-release.apk
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          test -f app/build/outputs/apk/release/app-release.apk
